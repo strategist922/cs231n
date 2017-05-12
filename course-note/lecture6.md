@@ -10,7 +10,7 @@
 
 #### Activation Functions
 1.Sigmoid  
-$\sigmoid (x) = \frac{1}{1+e^{-x}}$
+$\sigma (x) = \frac{1}{1+e^{-x}}$
 
 problems:  
  - 1 . Saturated neurons 'kill' the gradients
@@ -20,7 +20,7 @@ problems:
  - 3 . exp() is a bit compute expensive
 
 2.tanh  
-$tanh(x) = 2 \times \sigmoid(x)$
+$tanh(x) = 2 \times \sigma (x)$
 
 still kill gradients with saturated
 
