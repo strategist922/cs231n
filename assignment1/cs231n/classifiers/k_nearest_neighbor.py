@@ -159,7 +159,8 @@ class KNearestNeighbor(object):
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
       sort_dist = np.argsort(dists[i, :])
-      closet_y = self.y_train[sort_dist[:k]]
+      for label in sort_dist[:k]:
+          closet_y.append(self.y_train[label])
       closet_y.sort()
       #########################################################################
       # TODO:                                                                 #
