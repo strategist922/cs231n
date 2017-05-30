@@ -30,7 +30,22 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  for i in range(X.shape[0]):
+      out = np.dot(X[i, :], W)
+    #   out -= np.max(out)
+      out = np.exp(out)
+      out = out / (out.sum())
+      label = y[i]
+      loss += -np.log(out[label])
+      for j in range(W.shape[1]):
+          if j == label:
+              dW[:, j] += (out[j] - 1) * X[i, :]
+          else:
+              dW[:, j] += out[j] * X[i, :]
+  loss /= X.shape[0]
+  loss += 0.5 * reg * np.sum(W * W)
+  dW /= X.shape[0]
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -54,10 +69,20 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  out = np.dot(X, W)
+  out = np.exp(out)
+  out_sum = np.sum(out, axis=1)
+  out_sum = out_sum.reshape((out_sum.shape[0], 1))
+  out = out / out_sum
+  minus_out = np.zeros(out.shape)
+  minus_out[np.arange(y.shape[0]), y] = 1
+  dW = np.dot(X.T, (out-minus_out)) / X.shape[0]
+  out_choice = out[np.arange(y.shape[0]), y]
+  out_choice = -np.log(out_choice)
+  loss = np.sum(out_choice) / X.shape[0] + 0.5 * reg * np.sum(W * W)
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
 
   return loss, dW
-
