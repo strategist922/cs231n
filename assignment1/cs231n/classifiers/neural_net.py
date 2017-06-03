@@ -76,11 +76,15 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    hidden = np.dot(X, W1) + b1
+    threshold = hidden > 0
+    relu_hidden = threshold * hidden
+    out = np.dot(relu_hidden, W2) + b2
+    scores = out
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-    
+
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -93,7 +97,13 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    softmax_out = np.exp(scores)
+    sum_softmax = np.sum(softmax_out, 1).reshape(-1, 1)
+    softmax_out = softmax_out / sum_softmax
+    loss = softmax_out[np.arange(N), y]
+    loss = -np.log(loss)
+    loss = np.sum(loss) / N
+    loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -105,7 +115,25 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    label_softmax = np.zeros_like(softmax_out)
+    label_softmax[np.arange(N), y] = -1
+    back_softmax = softmax_out + label_softmax
+    dW2 = np.dot(relu_hidden.T, back_softmax)
+    dW2 /= N
+    dW2 += 2 * reg * W2
+    db2 = np.sum(back_softmax, 0)
+    db2 /= N
+    dh1 = np.dot(back_softmax, W2.T)
+    dh1 = dh1 * threshold
+    dW1 = np.dot(X.T, dh1)
+    dW1 /= N
+    dW1 += 2 * reg * W1
+    db1 = np.sum(dh1, 0)
+    db1 /= N
+    grads['W1'] = dW1
+    grads['W2'] = dW2
+    grads['b1'] = db1
+    grads['b2'] = db2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -149,7 +177,9 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      idx = np.random.choice(num_train, size=batch_size)
+      X_batch = X[idx]
+      y_batch = y[idx]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -164,7 +194,8 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      for para in self.params:
+          self.params[para] -= learning_rate * grads[para]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -209,11 +240,13 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    hidden = np.dot(X, self.params['W1']) + self.params['b1']
+    threshold = hidden > 0
+    relu_hidden = hidden * threshold
+    out = np.dot(relu_hidden, self.params['W2']) + self.params['b2']
+    y_pred = np.argmax(out, 1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
 
     return y_pred
-
-
