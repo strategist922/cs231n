@@ -173,7 +173,14 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # variance, storing your result in the running_mean and running_var   #
         # variables.                                                          #
         #######################################################################
-        pass
+        sample_mean = np.mean(x, axis=0)
+        sample_var = np.var(x, axis=0)
+        running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+        running_var = momentum * running_var + (1 - momentum) * sample_var
+        x = x - sample_mean
+        x = x / np.sqrt(sample_var)
+        out = gamma * x + beta
+        cache = [sample_mean, sample_var, x, gamma]
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
@@ -184,7 +191,9 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # then scale and shift the normalized data using gamma and beta.      #
         # Store the result in the out variable.                               #
         #######################################################################
-        pass
+        x = x - running_mean
+        x = x / np.sqrt(running_var)
+        out = gamma * x + beta
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -220,7 +229,21 @@ def batchnorm_backward(dout, cache):
     # TODO: Implement the backward pass for batch normalization. Store the    #
     # results in the dx, dgamma, and dbeta variables.                         #
     ###########################################################################
-    pass
+    n = dout.shape[0]
+    d = dout.shape[1]
+    x = cache[2]
+    mean = cache[0]
+    var = cache[1]
+    dx = (1 - 1 / n) * np.sqrt(var) - 1 / (np.sqrt(var) * n) * (x - mean) ** 2
+    dx = dx * dout
+    dgamma = np.zeros((d, n*d))
+    dbeta = np.zeros((d, n*d))
+    diag = np.diag_indices(d)
+    for i in range(n):
+        dgamma[:, i*d: (i+1)*d][diag] = x[i]
+        dbeta[:, i*d: (i+1)*d][diag] = np.ones(d)
+    dgamma = np.dot(dgamma, dout.reshape(-1, 1)).squeeze(1)
+    dbeta = np.dot(dbeta, dout.reshape(-1, 1)).squeeze(1)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
